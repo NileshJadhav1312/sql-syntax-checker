@@ -1,0 +1,238 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SQL Syntax Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/theme/monokai.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/codemirror.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.13/mode/sql/sql.min.js"></script>
+    
+    <style>
+        :root {
+            --c1: #004B23; --c2: #006400; --c3: #007200; --c4: #008000;
+            --c5: #38B000; --c6: #70E000; --c7: #9EF01A; --c8: #CCFF33;
+        }
+        body { background-color: #000000; color: rgb(0, 0, 0); }
+        .CodeMirror {
+            height: 40vh; border-radius: 12px; font-size: 16px; padding: 15px;
+            background: #1a1a1a !important; border: 1px solid var(--c2);
+        }
+        .btn-gradient {
+            background: linear-gradient(135deg, var(--c4), var(--c6));
+            transition: all 0.3s ease;
+        }
+        .btn-gradient:hover { filter: brightness(1.2); transform: translateY(-1px); }
+        .error-card { border-left: 4px solid #ef4444; background: rgba(239, 68, 68, 0.1); }
+        .success-card { border-left: 4px solid var(--c5); background: rgba(56, 176, 0, 0.1); }
+        .glass { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(10px); }
+    </style>
+</head>
+<body class="p-4 md:p-8 font-sans">
+
+    <div class="max-w-6xl mx-auto space-y-6">
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-3xl font-black tracking-tighter italic" style="color: var(--c8)">
+                    SQL_SYNTAX<span class="text-white">.IO</span>
+                </h1>
+                <p class="text-slate-400 text-sm">Professional query validation & debugging engine</p>
+            </div>
+            <div class="flex gap-3 w-full md:w-auto">
+                <button onclick="clearEditor()" class="flex-1 md:flex-none px-6 py-3 rounded-xl border border-slate-700 hover:bg-slate-800 transition font-medium">Clear</button>
+                <button onclick="checkSyntax()" class="flex-1 md:flex-none btn-gradient px-8 py-3 rounded-xl text-black font-bold shadow-[0_0_20px_rgba(56,176,0,0.3)]">
+                    Validate Query
+                </button>
+            </div>
+        </header>
+
+        <div class="relative group">
+            <div class="absolute -inset-1 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200" style="background: linear-gradient(to right, var(--c1), var(--c8))"></div>
+            <textarea id="sqlInput">-- Write your SQL here
+SELECT id, username 
+FROM users 
+WHERE created_at > '2023-01-01';</textarea>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            
+            <div class="lg:col-span-1 glass border border-slate-800 rounded-2xl p-6 h-fit">
+                <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500 mb-4">Live Status</h3>
+                <div id="statusBox" class="flex items-center space-x-3 text-slate-400">
+                    <div id="statusDot" class="w-3 h-3 rounded-full bg-slate-700"></div>
+                    <span id="statusText">Ready for validation</span>
+                </div>
+                <div id="quickMetrics" class="mt-6 pt-6 border-t border-slate-800 text-sm text-slate-500 space-y-2">
+                    <div class="flex justify-between"><span>Characters:</span> <span id="charCount" class="text-white">0</span></div>
+                    <div class="flex justify-between"><span>Lines:</span> <span id="lineCount" class="text-white">0</span></div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-2 glass border border-slate-800 rounded-2xl p-6 min-h-[200px]">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xs font-bold uppercase tracking-widest text-slate-500">Analysis & Debugging</h3>
+                    <span id="errorType" class="text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-400 font-mono">CODE: --</span>
+                </div>
+                
+                <div id="explanationArea" class="space-y-4">
+                    <div class="text-slate-500 italic">No errors detected. Await validation...</div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const editor = CodeMirror.fromTextArea(document.getElementById("sqlInput"), {
+            mode: "text/x-sql",
+            theme: "monokai",
+            lineNumbers: true,
+            lineWrapping: true,
+            indentUnit: 4
+        });
+
+        // Track stats
+        editor.on("change", () => {
+            const content = editor.getValue();
+            document.getElementById("charCount").innerText = content.length;
+            document.getElementById("lineCount").innerText = editor.lineCount();
+        });
+
+        function clearEditor() {
+            editor.setValue("");
+            resetFeedback();
+        }
+
+        function resetFeedback() {
+            document.getElementById("statusDot").style.backgroundColor = '#334155';
+            document.getElementById("statusText").innerText = "Ready for validation";
+            document.getElementById("explanationArea").innerHTML = `<div class="text-slate-500 italic">No errors detected. Await validation...</div>`;
+            document.getElementById("errorType").innerText = "CODE: --";
+        }
+
+        async function checkSyntax() {
+            const sql = editor.getValue();
+            const statusDot = document.getElementById("statusDot");
+            const statusText = document.getElementById("statusText");
+            const explanationArea = document.getElementById("explanationArea");
+            const errorType = document.getElementById("errorType");
+
+            statusText.innerText = "Analyzing...";
+            statusDot.style.backgroundColor = "#eab308"; // Warning yellow
+
+            try {
+                const response = await fetch("http://localhost:8000/validate", {
+                    method: "POST",
+                    body: sql
+                });
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    handleSuccess(data.message);
+                } else {
+                    handleError(data.message);
+                }
+            } catch (err) {
+                handleError("Connection Failed: Ensure your Java backend is running on port 8000.", "SERVER_OFFLINE");
+            }
+        }
+
+        function handleSuccess(msg) {
+            document.getElementById("statusDot").style.backgroundColor = "#38B000";
+            document.getElementById("statusText").innerText = "Query Valid";
+            document.getElementById("errorType").innerText = "STATUS: 200 OK";
+            document.getElementById("explanationArea").innerHTML = `
+                <div class="success-card p-4 rounded-xl">
+                    <h4 class="text-green-400 font-bold mb-1">✓ Syntax Check Passed</h4>
+                    <p class="text-green-100 text-sm leading-relaxed">${msg}</p>
+                </div>
+            `;
+        }
+
+        function handleError(msg, code = "SYNTAX_ERROR") {
+            document.getElementById("statusDot").style.backgroundColor = "#ef4444";
+            document.getElementById("statusText").innerText = "Error Found";
+            document.getElementById("errorType").innerText = `CODE: ${code}`;
+            
+            // Generate a more helpful "explanation"
+            explanationArea.innerHTML = `
+                <div class="error-card p-4 rounded-xl mb-4">
+                    <h4 class="text-red-400 font-bold mb-1">Oops! Something went wrong</h4>
+                    <p class="text-red-100 text-sm font-mono">${msg}</p>
+                </div>
+                <div class="bg-slate-800/50 p-4 rounded-xl">
+                    <h5 class="text-xs font-bold text-slate-400 uppercase mb-2">How to fix this:</h5>
+                    <ul class="text-sm text-slate-300 space-y-2 list-disc ml-4">
+                        <li>Check for missing commas between column names.</li>
+                        <li>Ensure all strings are wrapped in single quotes (e.g., 'text').</li>
+                        <li>Verify that keywords like <span class="text-blue-400">SELECT</span> and <span class="text-blue-400">FROM</span> are present.</li>
+                    </ul>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SQL Syntax Checker</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        textarea { width: 100%; height: 150px; font-family: monospace; font-size: 16px; padding: 10px; }
+        button { background-color: #28a745; color: white; padding: 10px 20px; border: none; font-size: 16px; cursor: pointer; margin-top: 10px;}
+        button:hover { background-color: #218838; }
+        #result { margin-top: 20px; padding: 15px; border-radius: 5px; display: none; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    </style>
+</head>
+<body>
+    <h1>SQL Syntax Checker</h1>
+    <p>Type your SQL query below to check for errors:</p>
+    
+    <textarea id="sqlInput" placeholder="SELECT * FROM users..."></textarea>
+    <br>
+    <button onclick="checkSyntax()">Validate Query</button>
+
+    <div id="result"></div>
+
+    <script>
+        async function checkSyntax() {
+            const sql = document.getElementById("sqlInput").value;
+            const resultDiv = document.getElementById("result");
+            
+            resultDiv.style.display = "block";
+            resultDiv.innerText = "Checking...";
+            resultDiv.className = "";
+
+            try {
+                const response = await fetch("http://localhost:8000/validate", {
+                    method: "POST",
+                    body: sql
+                });
+
+                const data = await response.json();
+
+                if (data.status === "success") {
+                    resultDiv.className = "success";
+                    resultDiv.innerText = data.message;
+                } else {
+                    resultDiv.className = "error";
+                    resultDiv.innerText = "❌ " + data.message;
+                }
+            } catch (err) {
+                resultDiv.className = "error";
+                resultDiv.innerText = "Could not connect to server. Is Java running?";
+            }
+        }
+    </script>
+</body>
+</html>
+ -->

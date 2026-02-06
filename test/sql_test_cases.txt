@@ -1,0 +1,108 @@
+# SQL Parser Test Cases
+
+# VALID QUERIES
+-- basic select star
+SELECT * FROM users;
+
+-- select columns
+SELECT id, name FROM customers;
+
+-- arithmetic expression in select with alias
+SELECT price * quantity AS total FROM orders;
+
+-- WHERE with number comparison
+SELECT id FROM items WHERE id = 5;
+
+-- WHERE with string comparison
+SELECT name FROM people WHERE name = 'Alice';
+
+-- IN list
+SELECT name FROM employees WHERE dept IN ('IT','HR','SALES');
+
+-- BETWEEN with AND
+SELECT * FROM employees WHERE salary BETWEEN 30000 AND 60000;
+
+-- LIKE with pattern
+SELECT name FROM people WHERE name LIKE 'A%';
+
+-- IS NULL / IS NOT NULL
+SELECT id FROM products WHERE discontinued IS NULL;
+SELECT id FROM products WHERE discontinued IS NOT NULL;
+
+-- Aggregate usage in SELECT (allowed)
+SELECT COUNT(*) FROM orders;
+SELECT id, SUM(amount) AS total FROM sales GROUP BY id HAVING SUM(amount) > 1000;
+SELECT AVG(score) FROM tests;
+SELECT MIN(price), MAX(price) FROM products;
+
+-- MOD function and nested functions
+SELECT MOD(quantity, 2) FROM inventory;
+SELECT SUM(MOD(quantity,2)) FROM inventory GROUP BY product_id HAVING SUM(MOD(quantity,2)) > 0;
+
+-- Function with multiple args (MOD is example)
+SELECT MOD(col1 + col2, 3) FROM t;
+
+# INVALID QUERIES (and expected errors)
+-- Missing FROM
+SELECT id, name users;
+# Expected: Syntax Error — expected FROM
+
+-- Missing comma between columns
+SELECT id name FROM users;
+# Expected: Error: Missing COMMA between column names
+
+-- Missing table name
+SELECT * FROM ;
+# Expected: Syntax Error: Expected identifier (table name)
+
+-- Missing value after operator (EOF)
+SELECT * FROM t WHERE id =
+# Expected: "Missing value after operator"
+
+-- Unterminated string literal
+SELECT * FROM t WHERE name = 'Alice
+# Expected: Lexical error: Unterminated string literal
+
+-- IN with empty list
+SELECT * FROM t WHERE dept IN ();
+# Expected: Syntax Error: IN list cannot be empty
+
+-- BETWEEN missing AND
+SELECT * FROM t WHERE salary BETWEEN 3000 6000;
+# Expected: Syntax Error: BETWEEN requires AND keyword
+
+-- LIKE without string pattern
+SELECT * FROM t WHERE name LIKE name;
+# Expected: Syntax Error: LIKE requires a string pattern
+
+-- IS used without NULL
+SELECT * FROM t WHERE salary IS TRUE;
+# Expected: Syntax Error: Expected NULL after IS
+
+-- Aggregate used in WHERE
+SELECT * FROM sales WHERE SUM(amount) > 100;
+# Expected: Invalid use of aggregate function in WHERE clause
+
+-- COUNT used without parentheses
+SELECT COUNT FROM orders;
+# Expected: Syntax Error: Aggregate/function 'COUNT' used without parentheses or unexpected token
+
+-- SUM(*) (invalid)
+SELECT SUM(*) FROM t;
+# Expected: Invalid use of '*' with function 'SUM'
+
+-- Function used without parentheses
+SELECT MOD FROM t;
+# Expected: Syntax Error: Aggregate/function 'MOD' used without parentheses
+
+-- IN with non-parenthesized list
+SELECT * FROM t WHERE id IN 1,2,3;
+# Expected: Syntax Error: Expected '(' after IN
+
+-- Nested functions with missing comma
+SELECT MOD(1 2) FROM t;
+# Expected: Syntax/Error parsing function args
+
+# Notes
+- Use these cases to feed the lexer+parser and verify error messages and behavior.
+- Lines starting with "# Expected:" are the intended/expected parser or lexer messages for the invalid examples.

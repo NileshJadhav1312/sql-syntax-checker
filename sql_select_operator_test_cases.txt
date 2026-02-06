@@ -1,0 +1,116 @@
+SQL SELECT OPERATOR TEST CASES
+
+============================== 1. ARITHMETIC OPERATORS
+==============================
+
+SELECT salary + bonus FROM employees; SELECT salary - tax FROM
+employees; SELECT price * quantity FROM orders; SELECT total_marks /
+subjects FROM students; SELECT marks % 2 FROM students;
+
+SELECT salary + 1000 FROM employees; SELECT salary * 2 FROM employees;
+SELECT salary / 2 FROM employees; SELECT marks % 5 FROM students;
+
+SELECT salary + bonus AS total_income FROM employees; SELECT price *
+quantity AS total_price FROM orders;
+
+SELECT * FROM employees WHERE salary + bonus > 60000; SELECT * FROM
+students WHERE marks % 2 = 0;
+
+INVALID: SELECT salary + FROM employees; SELECT salary / 0 FROM
+employees;
+
+============================== 2. COMPARISON OPERATORS
+==============================
+
+SELECT * FROM students WHERE marks = 60; 
+SELECT * FROM students WHERE marks <> 60;
+ SELECT * FROM students WHERE marks != 60; 
+ SELECT * FROM students WHERE marks > 60; 
+ SELECT * FROM students WHERE marks < 60;
+SELECT * FROM students WHERE marks >= 60; 
+SELECT * FROM students WHERE marks <= 60;
+
+SELECT * FROM employees WHERE salary > bonus; SELECT * FROM employees
+WHERE salary + bonus > 70000;
+
+INVALID: SELECT * FROM students WHERE = 60;
+
+============================== 3. LOGICAL OPERATORS
+==============================
+
+SELECT * FROM employees WHERE dept = ‘IT’ AND salary > 50000; SELECT *
+FROM employees WHERE dept = ‘IT’ OR dept = ‘HR’; SELECT * FROM employees
+WHERE NOT dept = ‘IT’;
+
+SELECT * FROM employees WHERE (dept = ‘IT’ OR dept = ‘HR’) AND salary >
+40000;
+
+INVALID: SELECT * FROM employees WHERE AND salary > 50000;
+
+============================== 4. SET OPERATORS
+==============================
+
+SELECT name FROM table1 UNION SELECT name FROM table2;
+
+SELECT name FROM table1 UNION ALL SELECT name FROM table2;
+
+SELECT name FROM table1 INTERSECT SELECT name FROM table2;
+
+SELECT name FROM table1 EXCEPT SELECT name FROM table2;
+
+INVALID: SELECT name FROM table1 UNION SELECT age FROM table2;
+
+============================== 5. SPECIAL OPERATORS
+==============================
+
+IN / NOT IN: SELECT * FROM students WHERE marks IN (60,70,80); SELECT *
+FROM students WHERE marks NOT IN (40,50);
+
+SELECT * FROM students WHERE marks IN (SELECT marks FROM toppers);
+
+BETWEEN: SELECT * FROM students WHERE marks BETWEEN 50 AND 80; SELECT *
+FROM students WHERE marks NOT BETWEEN 50 AND 80;
+
+LIKE: SELECT * FROM users WHERE name LIKE ‘A%’; SELECT * FROM users
+WHERE name LIKE ‘%a%’; SELECT * FROM users WHERE name LIKE ’_a%‘;
+SELECT * FROM users WHERE name NOT LIKE ’A%’;
+
+NULL CHECK: SELECT * FROM employees WHERE bonus IS NULL; SELECT * FROM
+employees WHERE bonus IS NOT NULL;
+
+EXISTS: SELECT * FROM employees e WHERE EXISTS ( SELECT 1 FROM
+departments d WHERE d.id = e.dept_id );
+
+ANY: SELECT * FROM students WHERE marks > ANY (SELECT marks FROM
+failures);
+
+ALL: SELECT * FROM students WHERE marks > ALL (SELECT marks FROM
+failures);
+
+============================== 6. CONDITIONAL OPERATORS
+==============================
+
+CASE: SELECT name, CASE WHEN marks >= 60 THEN ‘PASS’ ELSE ‘FAIL’ END
+FROM students;
+
+SELECT name, CASE WHEN marks >= 80 THEN ‘A’ WHEN marks >= 60 THEN ‘B’
+ELSE ‘C’ END FROM students;
+
+COALESCE: SELECT COALESCE(bonus, 0) FROM employees;
+
+NULLIF: SELECT NULLIF(marks, 0) FROM students;
+
+============================== 7. COMBINED TEST CASES
+==============================
+
+SELECT name, salary + bonus AS total FROM employees WHERE salary > 40000
+AND dept IN (‘IT’,‘HR’) AND bonus IS NOT NULL;
+
+SELECT * FROM students WHERE marks BETWEEN 60 AND 90 AND marks % 2 = 0
+AND name LIKE ‘A%’;
+
+============================== 8. SYNTAX ERROR TEST CASES
+==============================
+
+SELECT FROM employees; SELECT salary bonus FROM employees; SELECT *
+employees; SELECT * FROM WHERE salary > 50000;
