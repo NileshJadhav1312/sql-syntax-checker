@@ -1,0 +1,44 @@
+# GROUP BY and HAVING Rule Test Cases
+
+# ============ VALID QUERIES ============
+
+# Rule 1: All non-aggregated SELECT columns must be in GROUP BY
+SELECT department, SUM(salary) FROM employees GROUP BY department;
+
+SELECT department, role, SUM(salary) FROM employees GROUP BY department, role;
+
+# Rule 6: GROUP BY can use column aliases (some DBMS)
+SELECT department AS dept, SUM(salary) FROM employees GROUP BY department;
+
+# Rule 7: GROUP BY ordinal numbers (1, 2, 3...)
+SELECT department, SUM(salary) FROM employees GROUP BY 1;
+
+SELECT department, role, SUM(salary) FROM employees GROUP BY 1, 2;
+
+# Rule 3: GROUP BY expressions (e.g. YEAR)
+SELECT YEAR(order_date), SUM(amount) FROM orders GROUP BY YEAR(order_date);
+
+# Rule 2 (HAVING): HAVING can use GROUP BY columns
+SELECT department, SUM(salary) AS total_salary FROM employees GROUP BY department HAVING department = 'IT';
+
+# Rule 1 (HAVING): HAVING can use aggregate functions
+SELECT department, SUM(salary) AS total_salary FROM employees GROUP BY department HAVING SUM(salary) > 50000;
+
+# Rule 5: WHERE filters rows before GROUP BY, HAVING filters groups after
+SELECT department, SUM(salary) FROM employees WHERE hire_date > '2020-01-01' GROUP BY department HAVING SUM(salary) > 50000;
+
+# Multiple aggregates in SELECT
+SELECT id, SUM(amount) AS total FROM sales GROUP BY id HAVING SUM(amount) > 1000;
+
+# Aggregate only (no GROUP BY needed for single group)
+SELECT COUNT(*) FROM orders;
+SELECT AVG(score) FROM tests;
+SELECT MIN(price), MAX(price) FROM products;
+
+# ============ INVALID QUERIES ============
+
+# Rule 1 violation: id not in GROUP BY
+SELECT id, SUM(salary) FROM employees GROUP BY department;
+
+# Rule 3 (HAVING) violation: role not in GROUP BY nor aggregated
+SELECT department, SUM(salary) FROM employees GROUP BY department HAVING role = 'Manager';

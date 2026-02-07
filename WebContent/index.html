@@ -157,7 +157,7 @@ WHERE created_at > '2023-01-01';</textarea>
             document.getElementById("statusText").innerText = "Error Found";
             document.getElementById("errorType").innerText = `CODE: ${code}`;
             
-            // Generate a more helpful "explanation"
+            const explanationArea = document.getElementById("explanationArea");
             explanationArea.innerHTML = `
                 <div class="error-card p-4 rounded-xl mb-4">
                     <h4 class="text-red-400 font-bold mb-1">Oops! Something went wrong</h4>

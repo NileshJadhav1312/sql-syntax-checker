@@ -34,7 +34,8 @@ public class Lexer {
             if (current == '#') 
             {
                 pos++; // skip '#'
-                while (pos < input.length() && input.charAt(pos) != '\n' && input.charAt(pos) != '\r')  // \r not bringing cursor to the current line start                 pos++;
+                while (pos < input.length() && input.charAt(pos) != '\n' && input.charAt(pos) != '\r')
+                    pos++;
                 continue;
             }
 
@@ -392,6 +393,18 @@ public class Lexer {
                 return new Token(TokenType.LIKE, word, start);
             case "ESCAPE":
                 return new Token(TokenType.ESCAPE, word, start);
+            case "NULLS":
+                return new Token(TokenType.NULLS, word, start);
+            case "FIRST":
+                return new Token(TokenType.FIRST, word, start);
+            case "LAST":
+                return new Token(TokenType.LAST, word, start);
+            case "COLLATE":
+                return new Token(TokenType.COLLATE, word, start);
+            case "WITH":
+                return new Token(TokenType.WITH, word, start);
+            case "ROLLUP":
+                return new Token(TokenType.ROLLUP, word, start);
             case "COUNT":
                 return new Token(TokenType.COUNT, word, start);
             case "SUM":

@@ -42,12 +42,14 @@ public class Server {
             // Handle "Pre-flight" request (Browser checking if server is safe)
             if (exchange.getRequestMethod().equalsIgnoreCase("OPTIONS")) {
                 exchange.sendResponseHeaders(204, -1);
+                exchange.getResponseBody().close();  // Must close to properly terminate the exchange
                 return;
             }
 
             // Only allow POST requests
             if (!exchange.getRequestMethod().equalsIgnoreCase("POST")) {
                 exchange.sendResponseHeaders(405, -1); // Method Not Allowed
+                exchange.getResponseBody().close();  // Must close to properly terminate the exchange
                 return;
             }
 

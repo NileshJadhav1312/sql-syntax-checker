@@ -42,13 +42,13 @@ public class TestSuite {
                 }
                 continue;
             }
-            // Section markers
+            // Section markers (check INVALID before VALID since "INVALID QUERIES" contains "VALID QUERIES")
             if (t.startsWith("#")) {
-                if (t.toUpperCase().contains("VALID QUERIES")) {
-                    expectValid = true; current.setLength(0); continue;
-                }
                 if (t.toUpperCase().contains("INVALID QUERIES")) {
                     expectValid = false; current.setLength(0); continue;
+                }
+                if (t.toUpperCase().contains("VALID QUERIES")) {
+                    expectValid = true; current.setLength(0); continue;
                 }
                 // skip comment lines beginning with '#'
                 continue;
